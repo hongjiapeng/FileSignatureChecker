@@ -1,11 +1,5 @@
 using System.IO;
 using System.Windows;
-using System.Windows.Forms;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
 using FileSignatureChecker.Core.Services;
 using FileSignatureChecker.Core.Models;
 
