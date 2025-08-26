@@ -5,8 +5,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using FileSignatureChecker.Core.Models;
 
-namespace FileSignatureChecker.Services;
+namespace FileSignatureChecker.Core.Services;
 
 /// <summary>
 /// Service for digital signature detection and validation

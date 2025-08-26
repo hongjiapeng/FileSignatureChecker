@@ -1,4 +1,4 @@
-<Window x:Class="FileSignatureChecker.MainWindow"
+<Window x:Class="FileSignatureChecker.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Digital Signature Checker" Height="750" Width="1100"
@@ -209,7 +209,7 @@
                            FontWeight="SemiBold"/>
                 <TextBox x:Name="txtFileTypes" Grid.Row="0" Grid.Column="1" 
                          Style="{StaticResource ModernTextBox}"
-                         Text="exe,dll,sys,msi"
+                         Text="exe,dll"
                          ToolTip="Specify file extensions to check, separated by commas"/>
 
                 <CheckBox x:Name="chkIncludeSubdirectories" Grid.Row="1" Grid.Column="1" 

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace FileSignatureChecker.Services;
+namespace FileSignatureChecker.Core.Models;
 
 /// <summary>
 /// Parameters for signature checking operation

@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace FileSignatureChecker;
+namespace FileSignatureChecker.UI;
 
 /// <summary>
 /// Interaction logic for App.xaml

@@ -6,9 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using FileSignatureChecker.Services;
+using FileSignatureChecker.Core.Services;
+using FileSignatureChecker.Core.Models;
 
-namespace FileSignatureChecker;
+namespace FileSignatureChecker.UI;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
