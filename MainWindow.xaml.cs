@@ -82,19 +82,19 @@ public partial class MainWindow : Window
     {
         if (string.IsNullOrWhiteSpace(txtFolderPath.Text))
         {
-            ShowMessage("Please select a directory to scan!", "Input Required", MessageBoxImage.Warning);
+            txtStatus.Text = "❌ Please select a directory to scan first";
             return false;
         }
 
         if (!Directory.Exists(txtFolderPath.Text))
         {
-            ShowMessage("The selected directory does not exist!", "Directory Not Found", MessageBoxImage.Error);
+            txtStatus.Text = "❌ The selected directory does not exist";
             return false;
         }
 
         if (string.IsNullOrWhiteSpace(txtFileTypes.Text))
         {
-            ShowMessage("Please specify file types to check!", "Input Required", MessageBoxImage.Warning);
+            txtStatus.Text = "❌ Please specify file types to check";
             return false;
         }
 
@@ -141,13 +141,11 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException)
         {
-            txtStatus.Text = "Scan cancelled by user";
-            ShowMessage("Scan operation was cancelled.", "Cancelled", MessageBoxImage.Information);
+            txtStatus.Text = "⚠️ Scan cancelled by user";
         }
         catch (Exception ex)
         {
-            txtStatus.Text = $"Error: {ex.Message}";
-            ShowMessage($"An error occurred during the scan:\n{ex.Message}", "Error", MessageBoxImage.Error);
+            txtStatus.Text = $"❌ Error: {ex.Message}";
         }
         finally
         {
@@ -176,14 +174,13 @@ public partial class MainWindow : Window
     {
         if (result.IsCancelled)
         {
-            txtStatus.Text = "Scan was cancelled";
+            txtStatus.Text = "⚠️ Scan was cancelled";
             return;
         }
 
         if (result.HasError)
         {
-            txtStatus.Text = result.Message;
-            ShowMessage($"Error during scan:\n{result.Message}", "Scan Error", MessageBoxImage.Error);
+            txtStatus.Text = $"❌ {result.Message}";
             return;
         }
 
@@ -193,10 +190,32 @@ public partial class MainWindow : Window
 
         // Update UI
         UpdateResultsDisplay();
-        txtStatus.Text = result.Message;
+        
+        // Set status message with summary
+        UpdateStatusWithSummary(result);
+    }
 
-        // Show summary
-        ShowScanSummary(result);
+    /// <summary>
+    /// Update status message with scan summary
+    /// </summary>
+    private void UpdateStatusWithSummary(SignatureCheckResult result)
+    {
+        if (_unsignedFiles.Count == 0 && _signedFiles.Count > 0)
+        {
+            txtStatus.Text = $"✅ Excellent! All {_signedFiles.Count} files have valid digital signatures";
+        }
+        else if (_unsignedFiles.Count > 0)
+        {
+            txtStatus.Text = $"⚠️ Found {_unsignedFiles.Count} unsigned files out of {result.TotalFilesChecked} total files";
+        }
+        else if (result.TotalFilesChecked == 0)
+        {
+            txtStatus.Text = "ℹ️ No files found matching the specified criteria";
+        }
+        else
+        {
+            txtStatus.Text = result.Message;
+        }
     }
 
     /// <summary>
@@ -224,26 +243,25 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Show scan completion summary
+    /// Clear all results and reset counters
     /// </summary>
-    private void ShowScanSummary(SignatureCheckResult result)
+    private void ClearResults()
     {
-        if (_unsignedFiles.Count == 0 && _signedFiles.Count > 0)
-        {
-            ShowMessage("Excellent! All scanned files have valid digital signatures.", 
-                "Scan Complete", MessageBoxImage.Information);
-        }
-        else if (_unsignedFiles.Count > 0)
-        {
-            ShowMessage($"Found {_unsignedFiles.Count} unsigned files out of {result.TotalFilesChecked} total files.\n" +
-                       $"Please review the unsigned files list for details.", 
-                "Scan Complete", MessageBoxImage.Warning);
-        }
-        else if (result.TotalFilesChecked == 0)
-        {
-            ShowMessage("No files were found matching the specified criteria.", 
-                "No Files Found", MessageBoxImage.Information);
-        }
+        _signedFiles.Clear();
+        _unsignedFiles.Clear();
+        lstSignedFiles.Items.Clear();
+        lstUnsignedFiles.Items.Clear();
+        txtSignedCount.Text = "Count: 0";
+        txtUnsignedCount.Text = "Count: 0";
+        progressBar.Value = 0;
+    }
+
+    /// <summary>
+    /// Update UI state based on current data
+    /// </summary>
+    private void UpdateUI()
+    {
+        btnStartCheck.IsEnabled = !string.IsNullOrWhiteSpace(txtFolderPath.Text);
     }
 
     /// <summary>
@@ -268,35 +286,5 @@ public partial class MainWindow : Window
             txtProgressSigned.Text = "Signed: 0";
             txtProgressUnsigned.Text = "Unsigned: 0";
         }
-    }
-
-    /// <summary>
-    /// Clear all results and reset counters
-    /// </summary>
-    private void ClearResults()
-    {
-        _signedFiles.Clear();
-        _unsignedFiles.Clear();
-        lstSignedFiles.Items.Clear();
-        lstUnsignedFiles.Items.Clear();
-        txtSignedCount.Text = "Count: 0";
-        txtUnsignedCount.Text = "Count: 0";
-        progressBar.Value = 0;
-    }
-
-    /// <summary>
-    /// Update UI state based on current data
-    /// </summary>
-    private void UpdateUI()
-    {
-        btnStartCheck.IsEnabled = !string.IsNullOrWhiteSpace(txtFolderPath.Text);
-    }
-
-    /// <summary>
-    /// Show message box with consistent styling
-    /// </summary>
-    private static void ShowMessage(string message, string title, MessageBoxImage icon)
-    {
-        System.Windows.MessageBox.Show(message, title, MessageBoxButton.OK, icon);
     }
 }
