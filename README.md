@@ -49,6 +49,26 @@ FileSignatureChecker/
 5. 点击"开始检测"按钮开始检测
 6. 查看检测结果
 
+## 程序截图
+
+### 主界面
+
+![主界面](screenshots/main-window.png)
+
+程序启动后的主界面，包含文件夹选择、文件类型设置和扫描选项配置。
+
+### 扫描过程
+
+![扫描进行中](screenshots/scanning-progress.png)
+
+扫描过程中的界面，显示实时进度、当前正在检测的文件以及已找到的签名文件统计。新增功能：显示已用扫描时间。
+
+### 扫描结果
+
+![扫描结果](screenshots/scan-results.png)
+
+扫描完成后的结果展示，分别显示已签名和未签名的文件列表，状态栏显示总结信息和总用时。
+
 ## 技术栈
 
 - C# / .NET 9.0
@@ -65,6 +85,7 @@ FileSignatureChecker/
 - **FileSignatureChecker**: WPF 用户界面项目
 
 这种架构的优势：
+
 - ✅ 关注点分离，UI 与业务逻辑解耦
 - ✅ 核心逻辑可被其他项目重用
 - ✅ 便于单元测试
@@ -73,6 +94,7 @@ FileSignatureChecker/
 ## 编译和运行
 
 ### 前置要求
+
 - Visual Studio 2022 或更高版本
 - .NET 9.0 SDK
 
@@ -107,6 +129,7 @@ dotnet test
 ## 更新日志
 
 ### v1.0.0
+
 - 初始版本
 - 支持基本的文件签名检测功能
 - 支持指定文件类型和子目录检测

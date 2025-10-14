@@ -1,5 +1,7 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Forms;
+using System.Diagnostics;
 using FileSignatureChecker.Core.Services;
 using FileSignatureChecker.Core.Models;
 
@@ -14,6 +16,7 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _cancellationTokenSource;
     private List<string> _signedFiles = new();
     private List<string> _unsignedFiles = new();
+    private Stopwatch? _scanStopwatch;
 
     public MainWindow()
     {
@@ -102,6 +105,7 @@ public partial class MainWindow : Window
     private async Task StartSignatureCheckAsync()
     {
         _cancellationTokenSource = new CancellationTokenSource();
+        _scanStopwatch = Stopwatch.StartNew(); // 开始计时
         
         try
         {
@@ -136,11 +140,15 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException)
         {
-            txtStatus.Text = "⚠️ Scan cancelled by user";
+            _scanStopwatch?.Stop();
+            var elapsedTime = _scanStopwatch?.Elapsed ?? TimeSpan.Zero;
+            txtStatus.Text = $"⚠️ Scan cancelled by user (Time elapsed: {FormatElapsedTime(elapsedTime)})";
         }
         catch (Exception ex)
         {
-            txtStatus.Text = $"❌ Error: {ex.Message}";
+            _scanStopwatch?.Stop();
+            var elapsedTime = _scanStopwatch?.Elapsed ?? TimeSpan.Zero;
+            txtStatus.Text = $"❌ Error: {ex.Message} (Time elapsed: {FormatElapsedTime(elapsedTime)})";
         }
         finally
         {
@@ -159,7 +167,10 @@ public partial class MainWindow : Window
         txtProgressFile.Text = $"File: {progress.CurrentFile}";
         txtProgressSigned.Text = $"Signed: {progress.SignedCount}";
         txtProgressUnsigned.Text = $"Unsigned: {progress.UnsignedCount}";
-        txtProgressStatus.Text = $"Scanning... ({progress.ProgressPercentage}%)";
+        
+        // 显示当前扫描进度和已用时间
+        var currentElapsed = _scanStopwatch?.Elapsed ?? TimeSpan.Zero;
+        txtProgressStatus.Text = $"Scanning... ({progress.ProgressPercentage}%) - {FormatElapsedTime(currentElapsed)}";
     }
 
     /// <summary>
@@ -167,15 +178,18 @@ public partial class MainWindow : Window
     /// </summary>
     private void HandleScanResult(SignatureCheckResult result)
     {
+        _scanStopwatch?.Stop();
+        var elapsedTime = _scanStopwatch?.Elapsed ?? TimeSpan.Zero;
+
         if (result.IsCancelled)
         {
-            txtStatus.Text = "⚠️ Scan was cancelled";
+            txtStatus.Text = $"⚠️ Scan was cancelled (Time elapsed: {FormatElapsedTime(elapsedTime)})";
             return;
         }
 
         if (result.HasError)
         {
-            txtStatus.Text = $"❌ {result.Message}";
+            txtStatus.Text = $"❌ {result.Message} (Time elapsed: {FormatElapsedTime(elapsedTime)})";
             return;
         }
 
@@ -186,30 +200,59 @@ public partial class MainWindow : Window
         // Update UI
         UpdateResultsDisplay();
         
-        // Set status message with summary
-        UpdateStatusWithSummary(result);
+        // Set status message with summary and elapsed time
+        UpdateStatusWithSummary(result, elapsedTime);
     }
 
     /// <summary>
-    /// Update status message with scan summary
+    /// Update status message with scan summary and elapsed time
     /// </summary>
-    private void UpdateStatusWithSummary(SignatureCheckResult result)
+    private void UpdateStatusWithSummary(SignatureCheckResult result, TimeSpan elapsedTime)
     {
+        var timeString = FormatElapsedTime(elapsedTime);
+        
         if (_unsignedFiles.Count == 0 && _signedFiles.Count > 0)
         {
-            txtStatus.Text = $"✅ Excellent! All {_signedFiles.Count} files have valid digital signatures";
+            txtStatus.Text = $"✅ Excellent! All {_signedFiles.Count} files have valid digital signatures (Time: {timeString})";
         }
         else if (_unsignedFiles.Count > 0)
         {
-            txtStatus.Text = $"⚠️ Found {_unsignedFiles.Count} unsigned files out of {result.TotalFilesChecked} total files";
+            txtStatus.Text = $"⚠️ Found {_unsignedFiles.Count} unsigned files out of {result.TotalFilesChecked} total files (Time: {timeString})";
         }
         else if (result.TotalFilesChecked == 0)
         {
-            txtStatus.Text = "ℹ️ No files found matching the specified criteria";
+            txtStatus.Text = $"ℹ️ No files found matching the specified criteria (Time: {timeString})";
         }
         else
         {
-            txtStatus.Text = result.Message;
+            txtStatus.Text = $"{result.Message} (Time: {timeString})";
+        }
+    }
+
+    /// <summary>
+    /// Format elapsed time for display
+    /// </summary>
+    private static string FormatElapsedTime(TimeSpan elapsed)
+    {
+        if (elapsed.TotalDays >= 1)
+        {
+            return $"{elapsed:d\\d\\ h\\h\\ m\\m\\ s\\s}";
+        }
+        else if (elapsed.TotalHours >= 1)
+        {
+            return $"{elapsed:h\\h\\ m\\m\\ s\\s}";
+        }
+        else if (elapsed.TotalMinutes >= 1)
+        {
+            return $"{elapsed:m\\m\\ s\\s}";
+        }
+        else if (elapsed.TotalSeconds >= 1)
+        {
+            return $"{elapsed.TotalSeconds:F1}s";
+        }
+        else
+        {
+            return $"{elapsed.TotalMilliseconds:F0}ms";
         }
     }
 
