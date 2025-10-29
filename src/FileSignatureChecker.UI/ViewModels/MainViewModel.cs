@@ -40,7 +40,7 @@ public partial class MainViewModel : ObservableObject
     /// File types to check (comma-separated extensions)
     /// </summary>
     [ObservableProperty]
-    private string _fileTypes = "exe,dll";
+    private string _fileTypes = "exe,dll,winmd";
 
     /// <summary>
     /// Whether to include subdirectories in scan
