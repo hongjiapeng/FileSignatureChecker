@@ -2,6 +2,7 @@
     x:Class="FileSignatureChecker.UI.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:viewModels="clr-namespace:FileSignatureChecker.UI.ViewModels"
     Title="Digital Signature Checker"
     Width="1100"
     Height="750"
@@ -9,6 +10,10 @@
     MinHeight="600"
     Background="#F8F9FA"
     WindowStartupLocation="CenterScreen">
+
+    <Window.DataContext>
+        <viewModels:MainViewModel />
+    </Window.DataContext>
 
     <Window.Resources>
         <!--  Modern flat design styles  -->
@@ -212,18 +217,16 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBox
-                    x:Name="txtFolderPath"
                     Grid.Column="0"
                     Margin="0,0,12,0"
                     Background="#F8F9FA"
                     IsReadOnly="True"
                     Style="{StaticResource ModernTextBox}"
-                    Text="Select a directory to scan..." />
+                    Text="{Binding FolderPath, Mode=OneWay}" />
                 <Button
-                    x:Name="btnSelectFolder"
                     Grid.Column="1"
                     Width="120"
-                    Click="BtnSelectFolder_Click"
+                    Command="{Binding SelectFolderCommand}"
                     Content="Browse"
                     Style="{StaticResource ModernButton}" />
             </Grid>
@@ -252,21 +255,21 @@
                     FontWeight="SemiBold"
                     Text="File Types:" />
                 <TextBox
-                    x:Name="txtFileTypes"
                     Grid.Row="0"
                     Grid.Column="1"
+                    IsEnabled="{Binding IsNotScanning}"
                     Style="{StaticResource ModernTextBox}"
-                    Text="exe,dll"
+                    Text="{Binding FileTypes, UpdateSourceTrigger=PropertyChanged}"
                     ToolTip="Specify file extensions to check, separated by commas" />
 
                 <CheckBox
-                    x:Name="chkIncludeSubdirectories"
                     Grid.Row="1"
                     Grid.Column="1"
                     Margin="0,16,0,0"
                     Content="Include subdirectories"
                     FontWeight="SemiBold"
-                    IsChecked="True" />
+                    IsChecked="{Binding IncludeSubdirectories}"
+                    IsEnabled="{Binding IsNotScanning}" />
             </Grid>
         </GroupBox>
 
@@ -277,35 +280,31 @@
             HorizontalAlignment="Center"
             Orientation="Horizontal">
             <Button
-                x:Name="btnStartCheck"
                 Width="140"
                 Height="40"
-                Click="BtnStartCheck_Click"
+                Command="{Binding StartCheckCommand}"
                 Content="🔍 Start Scan"
                 FontSize="14"
                 Style="{StaticResource ModernButton}" />
             <Button
-                x:Name="btnClear"
                 Width="140"
                 Height="40"
-                Click="BtnClear_Click"
+                Command="{Binding ClearCommand}"
                 Content="🗑️ Clear Results"
                 FontSize="14"
                 Style="{StaticResource SecondaryButton}" />
             <Button
-                x:Name="btnCancel"
                 Width="120"
                 Height="40"
-                Click="BtnCancel_Click"
+                Command="{Binding CancelCommand}"
                 Content="❌ Cancel"
                 FontSize="14"
                 Style="{StaticResource DangerButton}"
-                Visibility="Collapsed" />
+                Visibility="{Binding CancelButtonVisibility}" />
         </StackPanel>
 
         <!--  Progress Bar  -->
         <Border
-            x:Name="progressPanel"
             Grid.Row="4"
             Margin="8,0,8,16"
             Padding="16"
@@ -313,7 +312,7 @@
             BorderBrush="#E9ECEF"
             BorderThickness="1"
             CornerRadius="4"
-            Visibility="Collapsed">
+            Visibility="{Binding ProgressPanelVisibility}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -322,19 +321,18 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock
-                    x:Name="txtProgressStatus"
                     Grid.Row="0"
                     Margin="0,0,0,8"
                     FontWeight="SemiBold"
-                    Text="Scanning files..." />
+                    Text="{Binding ProgressStatus}" />
 
                 <ProgressBar
-                    x:Name="progressBar"
                     Grid.Row="1"
                     Height="8"
                     Margin="0,0,0,8"
                     Background="#E9ECEF"
-                    Foreground="#007ACC" />
+                    Foreground="#007ACC"
+                    Value="{Binding ProgressPercentage}" />
 
                 <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
@@ -344,33 +342,30 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock
-                        x:Name="txtProgressFile"
                         Grid.Column="0"
                         FontSize="11"
                         Foreground="#6C757D"
-                        Text="File: example.exe" />
+                        Text="{Binding ProgressFile}" />
 
                     <TextBlock
-                        x:Name="txtProgressSigned"
                         Grid.Column="1"
                         HorizontalAlignment="Center"
                         FontSize="11"
                         Foreground="#28A745"
-                        Text="Signed: 0" />
+                        Text="{Binding ProgressSigned}" />
 
                     <TextBlock
-                        x:Name="txtProgressUnsigned"
                         Grid.Column="2"
                         HorizontalAlignment="Right"
                         FontSize="11"
                         Foreground="#DC3545"
-                        Text="Unsigned: 0" />
+                        Text="{Binding ProgressUnsigned}" />
                 </Grid>
             </Grid>
         </Border>
 
         <!--  Results Display  -->
-        <Grid x:Name="resultsPanel" Grid.Row="4">
+        <Grid Grid.Row="4" Visibility="{Binding ResultsPanelVisibility}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -395,16 +390,15 @@
                         Background="#D4EDDA"
                         CornerRadius="4">
                         <TextBlock
-                            x:Name="txtSignedCount"
                             HorizontalAlignment="Center"
                             FontWeight="Bold"
                             Foreground="#155724"
-                            Text="Count: 0" />
+                            Text="{Binding SignedCount}" />
                     </Border>
 
                     <ListBox
-                        x:Name="lstSignedFiles"
                         Grid.Row="1"
+                        ItemsSource="{Binding SignedFiles}"
                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
                         Style="{StaticResource ModernListBox}" />
                 </Grid>
@@ -429,16 +423,15 @@
                         Background="#F8D7DA"
                         CornerRadius="4">
                         <TextBlock
-                            x:Name="txtUnsignedCount"
                             HorizontalAlignment="Center"
                             FontWeight="Bold"
                             Foreground="#721C24"
-                            Text="Count: 0" />
+                            Text="{Binding UnsignedCount}" />
                     </Border>
 
                     <ListBox
-                        x:Name="lstUnsignedFiles"
                         Grid.Row="1"
+                        ItemsSource="{Binding UnsignedFiles}"
                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
                         Style="{StaticResource ModernListBox}" />
                 </Grid>
@@ -466,16 +459,14 @@
                     FontWeight="SemiBold"
                     Text="Status:" />
                 <TextBlock
-                    x:Name="txtStatus"
                     Grid.Column="1"
                     FontSize="14"
-                    Text="Ready to scan" />
+                    Text="{Binding StatusMessage}" />
                 <TextBlock
-                    x:Name="txtVersion"
                     Grid.Column="2"
                     FontSize="10"
                     Foreground="#6C757D"
-                    Text="v1.0.0" />
+                    Text="{Binding Version}" />
             </Grid>
         </Border>
     </Grid>
