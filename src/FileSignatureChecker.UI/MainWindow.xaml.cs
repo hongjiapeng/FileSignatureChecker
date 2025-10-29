@@ -1,6 +1,5 @@
 using System.IO;
 using System.Windows;
-using System.Windows.Forms;
 using System.Diagnostics;
 using FileSignatureChecker.Core.Services;
 using FileSignatureChecker.Core.Models;
